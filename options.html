@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    * { box-sizing: border-box; }
+    body { font-family: system-ui, sans-serif; max-width: 720px; margin: 2rem auto; padding: 0 1rem; }
+    h1 { font-size: 1.4rem; }
+    table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+    th, td { text-align: left; padding: 8px; border-bottom: 1px solid #e0e0e0; }
+    th { font-size: 12px; text-transform: uppercase; color: #666; }
+    input, textarea { width: 100%; padding: 6px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; }
+    .btn { padding: 6px 14px; border: none; border-radius: 4px; cursor: pointer; font-size: 13px; }
+    .btn-add { background: #27ae60; color: #fff; }
+    .btn-del { background: #e74c3c; color: #fff; }
+    .btn-save { background: #2980b9; color: #fff; }
+    .form { margin-top: 1.5rem; padding: 1rem; background: #f9f9f9; border-radius: 8px; }
+    .form label { display: block; font-size: 12px; font-weight: 600; margin: 8px 0 4px; }
+    .form-row { display: flex; gap: 12px; }
+    .form-row > div { flex: 1; }
+  </style>
+</head>
+<body>
+  <h1>🏷️ Discount Code Alert — Manage Codes</h1>
+  <p>Add the sites where you have a discount, and the code to use.</p>
+
+  <table id="codes-table">
+    <thead>
+      <tr><th>Domain</th><th>Label</th><th>Code</th><th>Notes</th><th></th></tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <div class="form">
+    <h3 id="form-title">Add a new code</h3>
+    <div class="form-row">
+      <div>
+        <label>Domain *</label>
+        <input type="text" id="f-domain" placeholder="e.g. decathlon.com">
+      </div>
+      <div>
+        <label>Label</label>
+        <input type="text" id="f-label" placeholder="e.g. Bib Cycling Club">
+      </div>
+    </div>
+    <label>Discount Code *</label>
+    <input type="text" id="f-code" placeholder="e.g. BIBCYCLING2025">
+    <label>Notes (optional)</label>
+    <input type="text" id="f-notes" placeholder="e.g. Valid until Dec 2025, min. purchase €50">
+    <br><br>
+    <button class="btn btn-add" id="btn-save">Add</button>
+    <button class="btn btn-save" id="btn-cancel" style="display:none;">Cancel</button>
+  </div>
+
+  <script src="options.js"></script>
+</body>
+</html>
