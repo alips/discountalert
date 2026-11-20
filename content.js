@@ -1,211 +1,83 @@
-// options.js
+// content.js
 
-let codes = [];
-let editingIndex = -1;
+async function init() {
+  console.log("Discount Alert: script is running on", window.location.hostname);
 
-document.addEventListener("DOMContentLoaded", load);
-
-async function load() {
-  const data = await browser.storage.local.get("codes");
-  codes = data.codes || [];
-  render();
-}
-
-function render() {
-  const tbody = document.querySelector("#codes-table tbody");
-  while (tbody.firstChild) {
-    tbody.removeChild(tbody.firstChild);
-  }
-
-  codes.forEach((entry, i) => {
-    const tr = document.createElement("tr");
-
-    const tdDomain = document.createElement("td");
-    tdDomain.textContent = entry.domain;
-
-    const tdLabel = document.createElement("td");
-    tdLabel.textContent = entry.label || "-";
-
-    const tdCode = document.createElement("td");
-    const codeEl = document.createElement("code");
-    codeEl.textContent = entry.code;
-    tdCode.appendChild(codeEl);
-
-    const tdNotes = document.createElement("td");
-    tdNotes.textContent = entry.notes || "-";
-
-    const tdActions = document.createElement("td");
-
-    const btnEdit = document.createElement("button");
-    btnEdit.className = "btn btn-edit";
-    btnEdit.textContent = "Edit";
-    btnEdit.style.marginRight = "4px";
-    btnEdit.addEventListener("click", () => startEdit(i));
-    tdActions.appendChild(btnEdit);
-
-    const btnDel = document.createElement("button");
-    btnDel.className = "btn btn-del";
-    btnDel.textContent = "x";
-    btnDel.addEventListener("click", () => {
-      codes.splice(i, 1);
-      save();
-    });
-    tdActions.appendChild(btnDel);
-
-    tr.appendChild(tdDomain);
-    tr.appendChild(tdLabel);
-    tr.appendChild(tdCode);
-    tr.appendChild(tdNotes);
-    tr.appendChild(tdActions);
-
-    tbody.appendChild(tr);
-  });
-}
-
-function startEdit(i) {
-  editingIndex = i;
-  const entry = codes[i];
-  document.getElementById("f-domain").value = entry.domain;
-  document.getElementById("f-label").value = entry.label || "";
-  document.getElementById("f-code").value = entry.code;
-  document.getElementById("f-notes").value = entry.notes || "";
-  document.getElementById("form-title").textContent = "Edit code";
-  document.getElementById("btn-save").textContent = "Save";
-  document.getElementById("btn-cancel").style.display = "inline-block";
-}
-
-async function save() {
-  await browser.storage.local.set({ codes });
-  render();
-}
-
-document.getElementById("btn-save").addEventListener("click", () => {
-  const domain = document.getElementById("f-domain").value.trim().toLowerCase();
-  const label = document.getElementById("f-label").value.trim();
-  const code = document.getElementById("f-code").value.trim();
-  const notes = document.getElementById("f-notes").value.trim();
-
-  if (!domain || !code) {
-    alert("Domain and Code are required.");
+  const { codes } = await browser.storage.local.get("codes");
+  if (!codes || codes.length === 0) {
+    console.log("Discount Alert: no codes stored");
     return;
   }
 
-  if (editingIndex >= 0) {
-    codes[editingIndex] = { domain, label, code, notes };
-    editingIndex = -1;
-    document.getElementById("form-title").textContent = "Add a new code";
-    document.getElementById("btn-save").textContent = "Add";
-    document.getElementById("btn-cancel").style.display = "none";
-  } else {
-    codes.push({ domain, label, code, notes });
+  const hostname = window.location.hostname;
+  const match = codes.find(
+    (entry) =>
+      hostname === entry.domain ||
+      hostname.endsWith("." + entry.domain)
+  );
+
+  if (!match) {
+    console.log("Discount Alert: no match for", hostname);
+    return;
   }
 
-  clearForm();
-  save();
-});
-
-document.getElementById("btn-cancel").addEventListener("click", () => {
-  editingIndex = -1;
-  clearForm();
-  document.getElementById("form-title").textContent = "Add a new code";
-  document.getElementById("btn-save").textContent = "Add";
-  document.getElementById("btn-cancel").style.display = "none";
-});
-
-function clearForm() {
-  document.getElementById("f-domain").value = "";
-  document.getElementById("f-label").value = "";
-  document.getElementById("f-code").value = "";
-  document.getElementById("f-notes").value = "";
+  console.log("Discount Alert: MATCH found:", match);
+  showBadge(match);
 }
 
-// --- Export CSV ---
 
-document.getElementById("btn-export").addEventListener("click", () => {
-  const rows = [["domain", "label", "code", "notes"]];
-  codes.forEach((e) => rows.push([e.domain, e.label || "", e.code, e.notes || ""]));
+function showBadge(entry) {
+  const badge = document.createElement("div");
+  badge.id = "discount-alert-badge";
+  badge.style.cssText = `
+    position: fixed;
+    top: 16px;
+    right: 16px;
+    z-index: 2147483647;
+    background: #0d7377;
+    color: #fff;
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-family: system-ui, sans-serif;
+    font-size: 14px;
+    box-shadow: 0 2px 12px rgba(0,0,0,.3);
+    max-width: 280px;
+    cursor: pointer;
+    transition: opacity .3s;
+  `;
 
-  const csv = rows.map((row) =>
-    row.map((field) => `"${field.replace(/"/g, '""')}"`).join(",")
-  ).join("\n");
+  const strong = document.createElement("strong");
+  strong.textContent = "🏷️ Discount available";
+  badge.appendChild(strong);
 
-  const blob = new Blob([csv], { type: "text/csv" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = "discount-codes.csv";
-  a.click();
-  URL.revokeObjectURL(url);
-});
+  const label = document.createElement("span");
+  label.style.cssText = "font-size:13px; opacity:.85;";
+  label.textContent = entry.label || entry.domain;
+  badge.appendChild(document.createElement("br"));
+  badge.appendChild(label);
 
-// --- Import CSV ---
+  const code = document.createElement("code");
+  code.style.cssText = "background:rgba(255,255,255,.15); padding:2px 6px; border-radius:4px; font-size:15px; user-select:all;";
+  code.textContent = entry.code;
+  badge.appendChild(document.createElement("br"));
+  badge.appendChild(code);
 
-document.getElementById("btn-import").addEventListener("click", () => {
-  document.getElementById("file-input").click();
-});
-
-document.getElementById("file-input").addEventListener("change", (e) => {
-  const file = e.target.files[0];
-  if (!file) return;
-
-  const reader = new FileReader();
-  reader.onload = () => {
-    const lines = reader.result.split("\n").filter((l) => l.trim());
-    const start = lines[0].toLowerCase().includes("domain") ? 1 : 0;
-
-    for (let i = start; i < lines.length; i++) {
-      const fields = parseCsvLine(lines[i]);
-      if (fields.length >= 2 && fields[0] && fields[2]) {
-        const domain = fields[0].toLowerCase().trim();
-        const existing = codes.findIndex((c) => c.domain === domain);
-        const entry = {
-          domain: domain,
-          label: fields[1] || "",
-          code: fields[2].trim(),
-          notes: fields[3] || ""
-        };
-        if (existing >= 0) {
-          codes[existing] = entry;
-        } else {
-          codes.push(entry);
-        }
-      }
-    }
-
-    save();
-    alert("Import complete. " + codes.length + " codes total.");
-  };
-  reader.readAsText(file);
-  e.target.value = "";
-});
-
-function parseCsvLine(line) {
-  const fields = [];
-  let current = "";
-  let inQuotes = false;
-
-  for (let i = 0; i < line.length; i++) {
-    const ch = line[i];
-    if (inQuotes) {
-      if (ch === '"' && line[i + 1] === '"') {
-        current += '"';
-        i++;
-      } else if (ch === '"') {
-        inQuotes = false;
-      } else {
-        current += ch;
-      }
-    } else {
-      if (ch === '"') {
-        inQuotes = true;
-      } else if (ch === ",") {
-        fields.push(current);
-        current = "";
-      } else {
-        current += ch;
-      }
-    }
+  if (entry.notes) {
+    const notes = document.createElement("span");
+    notes.style.cssText = "font-size:12px; opacity:.7;";
+    notes.textContent = entry.notes;
+    badge.appendChild(document.createElement("br"));
+    badge.appendChild(notes);
   }
-  fields.push(current);
-  return fields;
+
+  badge.addEventListener("click", () => {
+    navigator.clipboard.writeText(entry.code).then(() => {
+      badge.style.opacity = "0.5";
+      setTimeout(() => (badge.style.opacity = "1"), 800);
+    });
+  });
+
+  document.documentElement.appendChild(badge);
 }
+
+init();
