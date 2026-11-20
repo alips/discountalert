@@ -13,15 +13,18 @@
     .btn { padding: 6px 14px; border: none; border-radius: 4px; cursor: pointer; font-size: 13px; }
     .btn-add { background: #27ae60; color: #fff; }
     .btn-del { background: #e74c3c; color: #fff; }
+    .btn-edit { background: #f39c12; color: #fff; }
     .btn-save { background: #2980b9; color: #fff; }
+    .btn-io { background: #8e44ad; color: #fff; }
     .form { margin-top: 1.5rem; padding: 1rem; background: #f9f9f9; border-radius: 8px; }
     .form label { display: block; font-size: 12px; font-weight: 600; margin: 8px 0 4px; }
     .form-row { display: flex; gap: 12px; }
     .form-row > div { flex: 1; }
+    .io-buttons { margin-top: 1rem; display: flex; gap: 8px; }
   </style>
 </head>
 <body>
-  <h1>🏷️ Discount Code Alert — Manage Codes</h1>
+  <h1>Discount Code Alert - Manage Codes</h1>
   <p>Add the sites where you have a discount, and the code to use.</p>
 
   <table id="codes-table">
@@ -30,6 +33,12 @@
     </thead>
     <tbody></tbody>
   </table>
+
+  <div class="io-buttons">
+    <button class="btn btn-io" id="btn-export">Export CSV</button>
+    <button class="btn btn-io" id="btn-import">Import CSV</button>
+    <input type="file" id="file-input" accept=".csv" style="display:none;">
+  </div>
 
   <div class="form">
     <h3 id="form-title">Add a new code</h3>
@@ -46,7 +55,7 @@
     <label>Discount Code *</label>
     <input type="text" id="f-code" placeholder="e.g. BIBCYCLING2025">
     <label>Notes (optional)</label>
-    <input type="text" id="f-notes" placeholder="e.g. Valid until Dec 2025, min. purchase €50">
+    <input type="text" id="f-notes" placeholder="e.g. Valid until Dec 2025, min. purchase 50">
     <br><br>
     <button class="btn btn-add" id="btn-save">Add</button>
     <button class="btn btn-save" id="btn-cancel" style="display:none;">Cancel</button>
